@@ -3,5 +3,5 @@
   "value": -2.821946,
   "unit": "percent",
   "notes": "Mean industry-level GVA change from 2019-20 to 2020-21 in the main sample, used as the naive descriptive benchmark before labour-intensity split.",
-  "is_template": false
+  "is_template": true
 }
