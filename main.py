@@ -11,7 +11,7 @@ os.environ["MPLBACKEND"] = "Agg"
 import json
 from pathlib import Path
 import statsmodels.api as sm
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, mean_absolute_error
 
 import numpy as np
 import pandas as pd
