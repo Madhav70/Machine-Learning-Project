@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 # ============================================================
-# ECO6810 FINAL PROJECT
-# ASI Manufacturing COVID Shock and Recovery Analysis
+# ASI COVID Manufacturing Project
+# Final Project Pipeline
 # ============================================================
 
 import json
@@ -10,16 +10,16 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+import matplotlib
+matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
-
-from scipy.stats import ttest_ind
-
-import statsmodels.api as sm
 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import r2_score, mean_absolute_error
+from sklearn.linear_model import LinearRegression
+from scipy.stats import ttest_ind
 
 
 # ============================================================
