@@ -5,6 +5,9 @@ from __future__ import annotations
 # Final Project Pipeline
 # ============================================================
 
+import os
+os.environ["MPLBACKEND"] = "Agg"
+
 import json
 from pathlib import Path
 
@@ -20,7 +23,6 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression
 from scipy.stats import ttest_ind
-
 
 # ============================================================
 # PATHS
