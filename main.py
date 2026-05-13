@@ -10,9 +10,7 @@ os.environ["MPLBACKEND"] = "Agg"
 
 import json
 from pathlib import Path
-import statsmodels.api as sm
-from sklearn.metrics import r2_score, mean_absolute_error
-from sklearn.preprocessing import StandardScaler
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -22,10 +20,15 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 
+import statsmodels.api as sm
+
+from scipy.stats import ttest_ind
+
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.cluster import KMeans
-from sklearn.linear_model import LinearRegression
-from scipy.stats import ttest_ind
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import r2_score, mean_absolute_error
+
 
 # ============================================================
 # PATHS
@@ -121,7 +124,7 @@ print("Descriptive statistics written.")
 # BASELINE METRIC
 # ============================================================
 
-baseline_value = df["gva_drop_pct"].mean()
+baseline_value = float(df["gva_drop_pct"].mean())
 
 baseline_metric = {
 
@@ -129,16 +132,22 @@ baseline_metric = {
         "national_gva_drop_2020_21",
 
     "value":
-        round(float(baseline_value), 4),
+        round(baseline_value, 4),
 
     "unit":
         "percent",
 
+    "generated_at":
+        datetime.utcnow().isoformat(),
+
+    "sample_size":
+        int(df.shape[0]),
+
     "notes":
         (
-            "Mean industry-level GVA change "
-            "from 2019-20 to 2020-21 in the "
-            "main sample."
+            "Mean industry-level GVA percentage change "
+            "from 2019-20 to 2020-21 across all "
+            "manufacturing industries in the sample."
         ),
 
     "is_template":
@@ -166,11 +175,11 @@ group_means = (
     .mean()
 )
 
-capital_mean = (
+capital_mean = float(
     group_means["Capital-intensive"]
 )
 
-labour_mean = (
+labour_mean = float(
     group_means["Labour-intensive"]
 )
 
@@ -184,7 +193,7 @@ primary_metric = {
         "labour_intensive_excess_gva_decline",
 
     "value":
-        round(float(difference), 4),
+        round(difference, 4),
 
     "threshold":
         2.0,
@@ -196,10 +205,10 @@ primary_metric = {
         "percentage_points",
 
     "capital_intensive_mean_drop":
-        round(float(capital_mean), 4),
+        round(capital_mean, 4),
 
     "labour_intensive_mean_drop":
-        round(float(labour_mean), 4),
+        round(labour_mean, 4),
 
     "industry_count":
         int(df.shape[0]),
@@ -207,11 +216,14 @@ primary_metric = {
     "minimum_factory_count":
         int(df["min_factory_count"].min()),
 
+    "generated_at":
+        datetime.utcnow().isoformat(),
+
     "notes":
         (
-            "Labour-intensive industries experienced "
-            "larger COVID-era GVA declines than "
-            "capital-intensive industries."
+            "Difference in average COVID-era GVA decline "
+            "between labour-intensive and "
+            "capital-intensive manufacturing industries."
         ),
 
     "is_template":
@@ -387,7 +399,8 @@ scaled = StandardScaler().fit_transform(cluster_vars)
 
 kmeans = KMeans(
     n_clusters=3,
-    random_state=42
+    random_state=42,
+    n_init=10
 )
 
 df["cluster"] = kmeans.fit_predict(scaled)
@@ -404,10 +417,9 @@ cluster_table.to_csv(
 
 
 # ============================================================
-# FIGURES
+# FIGURE 1
 # ============================================================
 
-# Figure 1
 plt.figure(figsize=(12, 7))
 
 plt.barh(
@@ -433,7 +445,10 @@ plt.savefig(
 plt.close()
 
 
-# Figure 2
+# ============================================================
+# FIGURE 2
+# ============================================================
+
 recovery_df = df.sort_values("gva_recovery_pct")
 
 plt.figure(figsize=(12, 7))
@@ -461,7 +476,10 @@ plt.savefig(
 plt.close()
 
 
-# Figure 3
+# ============================================================
+# FIGURE 3
+# ============================================================
+
 plt.figure(figsize=(8, 6))
 
 plt.scatter(
@@ -487,7 +505,10 @@ plt.savefig(
 plt.close()
 
 
-# Figure 4
+# ============================================================
+# FIGURE 4
+# ============================================================
+
 plt.figure(figsize=(9, 5))
 
 plt.barh(
@@ -513,7 +534,10 @@ plt.savefig(
 plt.close()
 
 
-# Figure 5
+# ============================================================
+# FIGURE 5
+# ============================================================
+
 plt.figure(figsize=(8, 6))
 
 plt.scatter(
@@ -546,26 +570,54 @@ plt.close()
 
 manifest = {
 
+    "project_name":
+        "ASI COVID Manufacturing Recovery Analysis",
+
     "charter_locked":
         True,
+
+    "generated_at":
+        datetime.utcnow().isoformat(),
+
+    "run_command":
+        "uv run main.py",
+
+    "data_file":
+        "data/industry_shock_recovery_main_sample.csv",
+
+    "outputs_generated": [
+
+        "outputs/baseline_metric.json",
+        "outputs/primary_metric.json",
+        "outputs/milestone_manifest.json",
+
+        "tables/descriptive_summary.csv",
+        "tables/group_summary.csv",
+        "tables/industry_gva_drop_ranking.csv",
+        "tables/t_test_results.csv",
+        "tables/ols_results.csv",
+        "tables/random_forest_feature_importance.csv",
+        "tables/recovery_clusters.csv",
+
+        "figures/gva_drop_by_industry.png",
+        "figures/gva_recovery_by_industry.png",
+        "figures/labour_intensity_vs_gva_drop.png",
+        "figures/random_forest_feature_importance.png",
+        "figures/recovery_clusters.png"
+    ],
 
     "sources": [
         {
             "name":
-                "Annual Survey of Industries (ASI), MoSPI",
+                "Annual Survey of Industries (ASI), Ministry of Statistics and Programme Implementation",
 
             "status":
                 "working",
 
-            "probe_artifact":
-                "artifacts/probes/asi_probe.md",
-
             "note":
                 (
-                    "ASI Blocks A, C, D, and J "
-                    "were used to construct "
-                    "weighted NIC-2 manufacturing "
-                    "industry aggregates."
+                    "NIC-2 industry-level aggregates "
+                    "constructed using ASI manufacturing data."
                 )
         }
     ],
@@ -574,10 +626,7 @@ manifest = {
         True,
 
     "primary_metric_schema_ready":
-        True,
-
-    "run_command":
-        "uv run main.py"
+        True
 }
 
 with open(
